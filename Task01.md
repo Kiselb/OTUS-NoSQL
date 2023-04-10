@@ -1,7 +1,7 @@
-#Домашнее задание по леции "CAP теорема"
+# Домашнее задание по леции "CAP теорема"
 
-##MongoDB
+## MongoDB
 
-##MS SQL
+## MS SQL
 
-##Cassandra
+## Cassandra
