@@ -1,7 +1,19 @@
 # Домашнее задание по леции "CAP теорема"
 
-## MongoDB
+## [MongoDB](https://www.mongodb.com/)
 
-## MS SQL
+    MongoDB - это документальная, отказоустойчивая СУБД, с поддержкой ACID транзакций. Поддержка
+[ACID-транзакций](https://habr.com/ru/articles/555920/) добавленна начиная с версии 4.0 в 2018 году.
+Отказоустойчивость обеспечивается средствами отказоустойчивого кластера (не менее трёх серверов)
+на основе асинхронной репликации по схеме Main-Follower. Асинхронная, означает, что main сервер
+получает от follower'а только подтверждение о приёме данных и не дожидается, когда follower
+обновит свою реплику. Операции записи осуществляются только через Main-сервер. Чтение осуществляется
+также через Main-сервер, но возможен вариант чтения через follower'а, при соответствующих настройках
+.
+    MongoDB принадлежит к класу CP-систем. Это изначально заложено при проектировании MongoDB. В
+качестве консенсус-алгоритма используется [RAFT](https://medium.com/geekculture/raft-consensus-algorithm-and-leader-election-in-mongodb-vs-coachroachdb-19b767c87f95).
 
-## Cassandra
+
+## [MS SQL](https://www.microsoft.com/ru-ru/sql-server/sql-server-2019)
+
+## [Cassandra](https://cassandra.apache.org/_/index.html)
