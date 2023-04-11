@@ -4,6 +4,6 @@
 в материалах к занятию скрипт установки выполнить не удалось. Видимо, из-за различий в версии ОС. Ниже на скриншотах
 представлено состояние сервиса mongod и запущенная консоль mongosh.
 
-![mongod status](./task02-mongod-status.PNG)
+![mongod status](./task02-mongod.PNG)
 
 ![mongosh](./task02-mongosh.PNG)
