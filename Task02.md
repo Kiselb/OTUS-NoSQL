@@ -26,3 +26,10 @@
 
 ![mongodb-find-books](./task02-find-02.PNG)
 
+План выполнения запроса:
+
+![mongodb-find-books](./task02-find-02-plan.PNG)
+
+После добавления индекса по полю Authors, план выглядит так:
+
+![mongodb-find-books](./task02-find-02-plan-index.PNG)
