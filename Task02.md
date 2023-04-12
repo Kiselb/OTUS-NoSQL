@@ -32,4 +32,4 @@
 
 После добавления индекса по полю Authors, план выглядит так:
 
-![mongodb-find-books](./task02-find-02-plan-index.PNG)
+![mongodb-find-books](./task02-find-02-index.PNG)
