@@ -33,3 +33,13 @@
 После добавления индекса по полю Authors, план выглядит так:
 
 ![mongodb-find-books](./task02-find-02-index.PNG)
+
+Видно, что после создания индекса по полю Authors, актуальное время выполнения запроса поиска книг по автору
+изменилось драматически: с 24ms до 0ms.
+
+## Запрос на обновление
+
+Изменение названия книги с _id: 2. Исходное название: "Android in Action, Second Edition",
+после обновления: "Android in Action, 2-nd Edition"
+
+![mongodb-update-books](./task02-update-01.PNG)
