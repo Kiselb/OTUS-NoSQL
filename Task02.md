@@ -7,3 +7,7 @@
 ![mongod status](./task02-mongod.PNG)
 
 ![mongosh](./task02-mongosh.PNG)
+
+Для подключения и работы с MongoDB я использовал MongoDB Compass Community:
+
+![mongo-compass-community](./task02-mongo-compass.PNG)
