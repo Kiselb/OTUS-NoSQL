@@ -10,4 +10,19 @@
 
 Для подключения и работы с MongoDB я использовал MongoDB Compass Community:
 
-![mongo-compass-community](./task02-mongo-compass.PNG)
+![mongo-compass-community](./task02-mongodb-compass.PNG)
+
+Загрузил данные о книгах с предложенного [ресурса](https://github.com/ozlerhakan/mongodb-json-files). Загрузку произвёл средствами
+импорта данных MongoDB Compass Community. Состояние после загрузки:
+
+![mongodb-compass-community-books](./task02-mongodb-books.PNG)
+
+## Запросы на выборку
+### Запрос на выборку книг по JavaScript, выпущенных начиная с 01.01.2013 включительно
+
+![mongodb-find-books](./task02-find-01.PNG)
+
+### Запрос на выборку книг, автором которых, является Robi Sen
+
+![mongodb-find-books](./task02-find-02.PNG)
+
