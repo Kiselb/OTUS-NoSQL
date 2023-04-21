@@ -3,7 +3,7 @@
 
 ### Запуск процессов
 
-sudo mkdir /home/mongo && sudo mkdir /home/mongo/{dbc1,dbc2,dbc3} && sudo chmod 777 /home/mongo/{dbc1,dbc2,dbc3}
+```sudo mkdir /home/mongo && sudo mkdir /home/mongo/{dbc1,dbc2,dbc3} && sudo chmod 777 /home/mongo/{dbc1,dbc2,dbc3}
 mongod --configsvr --dbpath /home/mongo/dbc1 --port 27001 --replSet RScfg --fork --logpath /home/mongo/dbc1/dbc1.log --pidfilepath /home/mongo/dbc1/dbc1.pid
 mongod --configsvr --dbpath /home/mongo/dbc2 --port 27002 --replSet RScfg --fork --logpath /home/mongo/dbc2/dbc2.log --pidfilepath /home/mongo/dbc2/dbc2.pid
 mongod --configsvr --dbpath /home/mongo/dbc3 --port 27003 --replSet RScfg --fork --logpath /home/mongo/dbc3/dbc3.log --pidfilepath /home/mongo/dbc3/dbc3.pid
@@ -14,13 +14,14 @@ ps aux | grep mongo| grep -Ev "grep"
 
 ### Создание набора реплик:
 
-mongosh --port 27001
+```mongosh --port 27001
 > rs.initiate({"_id" : "RScfg", configsvr: true, members : [{"_id" : 0, priority : 3, host : "127.0.0.1:27001"},{"_id" : 1, host : "127.0.0.1:27002"},{"_id" : 2, host : "127.0.0.1:27003"}]});
 > rs.status()
+```
 
 Ниже представлено состояния набора реплик конфигурации
 
-{
+```{
   set: 'RScfg',
   date: ISODate("2023-04-20T16:56:01.873Z"),
   myState: 1,
@@ -136,12 +137,12 @@ mongosh --port 27001
   },
   operationTime: Timestamp({ t: 1682009761, i: 1 })
 }
-
+```
 ## Создание наборов реплик (3 набор по 3 реплики)
 
 ### Запуск процессов
 
-sudo mkdir /home/mongo/{db1,db2,db3,db4,db5,db6,db7,db8,db9} && sudo chmod 777 /home/mongo/{db1,db2,db3,db4,db5,db6,db7,db8,db9}
+```sudo mkdir /home/mongo/{db1,db2,db3,db4,db5,db6,db7,db8,db9} && sudo chmod 777 /home/mongo/{db1,db2,db3,db4,db5,db6,db7,db8,db9}
 mongod --shardsvr --dbpath /home/mongo/db1 --port 27011 --replSet RS1 --fork --logpath /home/mongo/db1/db1.log --pidfilepath /home/mongo/db1/db1.pid
 mongod --shardsvr --dbpath /home/mongo/db2 --port 27012 --replSet RS1 --fork --logpath /home/mongo/db2/db2.log --pidfilepath /home/mongo/db2/db2.pid
 mongod --shardsvr --dbpath /home/mongo/db3 --port 27013 --replSet RS1 --fork --logpath /home/mongo/db3/db3.log --pidfilepath /home/mongo/db3/db3.pid
@@ -153,12 +154,12 @@ mongod --shardsvr --dbpath /home/mongo/db6 --port 27023 --replSet RS2 --fork --l
 mongod --shardsvr --dbpath /home/mongo/db7 --port 27031 --replSet RS3 --fork --logpath /home/mongo/db7/db7.log --pidfilepath /home/mongo/db7/db7.pid
 mongod --shardsvr --dbpath /home/mongo/db8 --port 27032 --replSet RS3 --fork --logpath /home/mongo/db8/db8.log --pidfilepath /home/mongo/db8/db8.pid
 mongod --shardsvr --dbpath /home/mongo/db9 --port 27033 --replSet RS3 --fork --logpath /home/mongo/db9/db9.log --pidfilepath /home/mongo/db9/db9.pid
-
+```
 Проверка успешного запуска процессов:
 
 ps aux | grep mongo| grep -Ev "grep"
 
-root        2090  0.5  5.3 3021948 53232 ?       Sl   16:45   0:09 mongod --configsvr --dbpath /home/mongo/dbc1 --port 27001 --replSet RScfg --fork --logpath /home/mongo/dbc1/dbc1.log --pidfilepath /home/mongo/dbc1/dbc1.pid
+```root        2090  0.5  5.3 3021948 53232 ?       Sl   16:45   0:09 mongod --configsvr --dbpath /home/mongo/dbc1 --port 27001 --replSet RScfg --fork --logpath /home/mongo/dbc1/dbc1.log --pidfilepath /home/mongo/dbc1/dbc1.pid
 root        2153  0.5  5.0 2993784 50112 ?       Sl   16:48   0:07 mongod --configsvr --dbpath /home/mongo/dbc2 --port 27002 --replSet RScfg --fork --logpath /home/mongo/dbc2/dbc2.log --pidfilepath /home/mongo/dbc2/dbc2.pid
 root        2218  0.5  5.2 2989824 52048 ?       Sl   16:48   0:07 mongod --configsvr --dbpath /home/mongo/dbc3 --port 27003 --replSet RScfg --fork --logpath /home/mongo/dbc3/dbc3.log --pidfilepath /home/mongo/dbc3/dbc3.pid
 root        2467  0.7  9.1 2798920 90596 ?       Sl   17:07   0:01 mongod --shardsvr --dbpath /home/mongo/db1 --port 27011 --replSet RS1 --fork --logpath /home/mongo/db1/db1.log --pidfilepath /home/mongo/db1/db1.pid
@@ -170,10 +171,11 @@ root        2789  1.0  9.8 2797120 97988 ?       Sl   17:10   0:00 mongod --shar
 root        2852  1.2  9.8 2796096 97752 ?       Sl   17:10   0:00 mongod --shardsvr --dbpath /home/mongo/db7 --port 27031 --replSet RS3 --fork --logpath /home/mongo/db7/db7.log --pidfilepath /home/mongo/db7/db7.pid
 root        2917  1.5  9.6 2796096 95828 ?       Sl   17:10   0:00 mongod --shardsvr --dbpath /home/mongo/db8 --port 27032 --replSet RS3 --fork --logpath /home/mongo/db8/db8.log --pidfilepath /home/mongo/db8/db8.pid
 root        2980  2.4  9.6 2795072 95404 ?       Sl   17:11   0:00 mongod --shardsvr --dbpath /home/mongo/db9 --port 27033 --replSet RS3 --fork --logpath /home/mongo/db9/db9.log --pidfilepath /home/mongo/db9/db9.pid
+```
 
 ### Конфигурирование набора реплик первого шарда
 
-mongosh --port 27011
+```mongosh --port 27011
 > rs.initiate({"_id" : "RS1", members : [{"_id" : 0, priority : 3, host : "127.0.0.1:27011"},{"_id" : 1, host : "127.0.0.1:27012"},{"_id" : 2, host : "127.0.0.1:27013"}]});
 
 {
@@ -290,10 +292,10 @@ mongosh --port 27011
   },
   operationTime: Timestamp({ t: 1682011006, i: 1 })
 }
-
+```
 ### Конфигурирование набора реплик второго шарда
 
-mongosh --port 27021
+```mongosh --port 27021
 > rs.initiate({"_id" : "RS2", members : [{"_id" : 0, priority : 3, host : "127.0.0.1:27021"},{"_id" : 1, host : "127.0.0.1:27022"},{"_id" : 2, host : "127.0.0.1:27023"}]});
 
 {
@@ -410,10 +412,11 @@ mongosh --port 27021
   },
   operationTime: Timestamp({ t: 1682011215, i: 6 })
 }
+```
 
 ### Конфигурирование набора реплик третьего шарда
 
-mongosh --port 27031
+```mongosh --port 27031
 > rs.initiate({"_id" : "RS3", members : [{"_id" : 0, priority : 3, host : "127.0.0.1:27031"},{"_id" : 1, host : "127.0.0.1:27032"},{"_id" : 2, host : "127.0.0.1:27033"}]});
 
 {
@@ -530,24 +533,25 @@ mongosh --port 27031
   },
   operationTime: Timestamp({ t: 1682011385, i: 6 })
 }
-
+```
 ## Запуск роутеров
 
 sudo mkdir /home/mongo/dbs && sudo chmod 777 /home/mongo/dbs
 
-mongos --configdb RScfg/127.0.0.1:27001,127.0.0.1:27002,127.0.0.1:27003 --port 27100 --fork --logpath /home/mongo/dbs/dbs1.log --pidfilepath /home/mongo/dbs/dbs1.pid --bind_ip_all
+```mongos --configdb RScfg/127.0.0.1:27001,127.0.0.1:27002,127.0.0.1:27003 --port 27100 --fork --logpath /home/mongo/dbs/dbs1.log --pidfilepath /home/mongo/dbs/dbs1.pid --bind_ip_all
 mongos --configdb RScfg/127.0.0.1:27001,127.0.0.1:27002,127.0.0.1:27003 --port 27200 --fork --logpath /home/mongo/dbs/dbs2.log --pidfilepath /home/mongo/dbs/dbs2.pid --bind_ip_all
-
+```
 Здесь очень важно указать --bind_ip_all. Иначе невозможно будет подключиться к кластеру с помощью внешних инструментов, например, MongoDB Compass Community.
 
 ## Конфигурирование шард
 
-mongosh --port 27100
+```mongosh --port 27100
 > sh.addShard("RS1/127.0.0.1:27011,127.0.0.1:27012,127.0.0.1:27013")
 > sh.addShard("RS2/127.0.0.1:27021,127.0.0.1:27022,127.0.0.1:27023")
 > sh.addShard("RS3/127.0.0.1:27031,127.0.0.1:27032,127.0.0.1:27033")
 > sh.status()
-
+```
+```
 shardingVersion
 {
   _id: 1,
@@ -555,7 +559,6 @@ shardingVersion
   currentVersion: 6,
   clusterId: ObjectId("64416d7bbfd6f6d4ef72e785")
 }
----
 shards
 [
   {
@@ -577,13 +580,10 @@ shards
     topologyTime: Timestamp({ t: 1682012371, i: 1 })
   }
 ]
----
 active mongoses
 [ { '6.0.5': 2 } ]
----
 autosplit
 { 'Currently enabled': 'yes' }
----
 balancer
 {
   'Currently enabled': 'yes',
@@ -591,7 +591,6 @@ balancer
   'Failed balancer rounds in last 5 attempts': 0,
   'Migration Results for the last 24 hours': 'No recent migrations'
 }
----
 databases
 [
   {
@@ -610,10 +609,10 @@ databases
     }
   }
 ]
-
+```
 ## Список процессов
 
-root        2090  0.6  6.2 3108212 62244 ?       Sl   16:45   0:23 mongod --configsvr --dbpath /home/mongo/dbc1 --port 27001 --replSet RScfg --fork --logpath /home/mongo/dbc1/dbc1.log --pidfilepath /home/mongo/dbc1/dbc1.pid
+```root        2090  0.6  6.2 3108212 62244 ?       Sl   16:45   0:23 mongod --configsvr --dbpath /home/mongo/dbc1 --port 27001 --replSet RScfg --fork --logpath /home/mongo/dbc1/dbc1.log --pidfilepath /home/mongo/dbc1/dbc1.pid
 root        2153  0.5  4.7 3063980 46672 ?       Sl   16:48   0:21 mongod --configsvr --dbpath /home/mongo/dbc2 --port 27002 --replSet RScfg --fork --logpath /home/mongo/dbc2/dbc2.log --pidfilepath /home/mongo/dbc2/dbc2.pid
 root        2218  0.5  4.9 3075036 48704 ?       Sl   16:48   0:21 mongod --configsvr --dbpath /home/mongo/dbc3 --port 27003 --replSet RScfg --fork --logpath /home/mongo/dbc3/dbc3.log --pidfilepath /home/mongo/dbc3/dbc3.pid
 root        2467  0.4  5.2 3144820 51852 ?       Sl   17:07   0:12 mongod --shardsvr --dbpath /home/mongo/db1 --port 27011 --replSet RS1 --fork --logpath /home/mongo/db1/db1.log --pidfilepath /home/mongo/db1/db1.pid
@@ -627,6 +626,7 @@ root        2917  0.4  4.5 3117540 44908 ?       Sl   17:10   0:10 mongod --shar
 root        2980  0.4  5.8 3109656 58468 ?       Sl   17:11   0:10 mongod --shardsvr --dbpath /home/mongo/db9 --port 27033 --replSet RS3 --fork --logpath /home/mongo/db9/db9.log --pidfilepath /home/mongo/db9/db9.pid
 root        3449  0.1  3.4 2513688 34212 ?       Sl   17:34   0:01 mongos --configdb RScfg/127.0.0.1:27001,127.0.0.1:27002,127.0.0.1:27003 --port 27100 --fork --logpath /home/mongo/dbs/dbs1.log --pidfilepath /home/mongo/dbs/dbs1.pid
 root        3498  0.1  3.0 2497780 30188 ?       Sl   17:34   0:01 mongos --configdb RScfg/127.0.0.1:27001,127.0.0.1:27002,127.0.0.1:27003 --port 27200 --fork --logpath /home/mongo/dbs/dbs2.log --pidfilepath /home/mongo/dbs/dbs2.pid
+```
 
 ## Подключение к кластеру средствами MongoDB Compass Community
 
@@ -636,13 +636,13 @@ root        3498  0.1  3.0 2497780 30188 ?       Sl   17:34   0:01 mongos --conf
 
 ### Создание шардированной Базы Данных
 
-mongosh --port 27300
+```mongosh --port 27300
 > use cities
 > sh.enablingSharding("cities");
-
+```
 результат выполнения команды:
 
-{
+```{
   ok: 1,
   '$clusterTime': {
     clusterTime: Timestamp({ t: 1682076403, i: 2 }),
@@ -653,22 +653,22 @@ mongosh --port 27300
   },
   operationTime: Timestamp({ t: 1682076402, i: 2 })
 }
-
+```
 Изменение размера chunk:
 
-> use config
+```> use config
 > db.settings.updateOne({ _id: 'chunksize' }, { $set: { _id: 'chunksize', value: 1 }}, { upsert: true });
-
+```
 результат выполнения команды:
 
-{
+```{
   acknowledged: true,
   insertedId: 'chunksize',
   matchedCount: 0,
   modifiedCount: 0,
   upsertedCount: 1
 }
-
+```
 ### Загрузка тестовых данных
 
 Загрузил данные об инспекции городов с предложенного [ресурса](https://github.com/ozlerhakan/mongodb-json-files). Загрузку произвёл средствами
@@ -682,15 +682,17 @@ mongosh --port 27300
 указанному полю построен как hashed, поскольку хеширование равномерно распределит строки
 по диапазаноу, даже если строки лингвистически близкие.
 
+```
 > db.inspections.createIndex({ business_name: "hashed" });
+```
 
 ### Шардирование коллекции
-
+```
 > sh.shardCollection("cities.inspections", { business_name: "hashed" })
-
+```
 Результат выполнения команды:
 
-{
+```{
   collectionsharded: 'cities.inspections',
   ok: 1,
   '$clusterTime': {
@@ -702,9 +704,9 @@ mongosh --port 27300
   },
   operationTime: Timestamp({ t: 1682079070, i: 8 })
 }
-
+```
 Состояние шардирования:
-
+```
 > sh.status();
 
 shardingVersion
@@ -714,7 +716,6 @@ shardingVersion
   currentVersion: 6,
   clusterId: ObjectId("64416d7bbfd6f6d4ef72e785")
 }
----
 shards
 [
   {
@@ -736,13 +737,10 @@ shards
     topologyTime: Timestamp({ t: 1682012371, i: 1 })
   }
 ]
----
 active mongoses
 [ { '6.0.5': 3 } ]
----
 autosplit
 { 'Currently enabled': 'yes' }
----
 balancer
 {
   'Currently enabled': 'yes',
@@ -750,7 +748,6 @@ balancer
   'Currently running': 'no',
   'Migration Results for the last 24 hours': { '13': 'Success' }
 }
----
 databases
 [
   {
@@ -810,16 +807,16 @@ databases
     }
   }
 ]
-
+```
 ## Проверка отказоустойчивости кластера
 
 ### Отключение реплики
-
+```
 mongosh -port 27013
 > db.shutdownServer()
-
+```
 Проверяем, что процесс завершился:
-
+```
 ps aux | grep mongo| grep -Ev "grep"
 
 root        2090  0.7  4.9 3131768 49364 ?       Sl   апр20   9:22 mongod --configsvr --dbpath /home/mongo/dbc1 --port 27001 --replSet RScfg --fork --logpath /home/mongo/dbc1/dbc1.log --pidfilepath /home/mongo/dbc1/dbc1.pid
@@ -836,11 +833,11 @@ root        2980  0.4  4.1 3153152 40736 ?       Sl   апр20   5:39 mongod --s
 root        3449  0.1  1.3 2513688 12936 ?       Sl   апр20   2:06 mongos --configdb RScfg/127.0.0.1:27001,127.0.0.1:27002,127.0.0.1:27003 --port 27100 --fork --logpath /home/mongo/dbs/dbs1.log --pidfilepath /home/mongo/dbs/dbs1.pid
 root        3498  0.1  1.5 2514020 14912 ?       Sl   апр20   2:00 mongos --configdb RScfg/127.0.0.1:27001,127.0.0.1:27002,127.0.0.1:27003 --port 27200 --fork --logpath /home/mongo/dbs/dbs2.log --pidfilepath /home/mongo/dbs/dbs2.pid
 root        5597  0.1  2.3 2518780 23248 ?       Sl   апр20   1:54 mongos --configdb RScfg/127.0.0.1:27001,127.0.0.1:27002,127.0.0.1:27003 --port 27300 --fork --logpath /home/mongo/dbs/dbs3.log --pidfilepath /home/mongo/dbs/dbs3.pid --bind_ip_all
-
+```
 Да, действительно, процеcc MongoDB по порту 27013 завершён
 
 ### Проверка состояния реплики
-
+```
 mongosh --port 27011
 > rs.status();
 
@@ -960,35 +957,35 @@ RS1 [direct: primary] test> rs.status();
   },
   operationTime: Timestamp({ t: 1682084103, i: 1 })
 }
-
+```
 Да, действительно, член реплики по порту 27013 недоступен
 
 ### Проверка чтения данных
-
+```
 mongosh --port 27300
 
 > use cities
 > db.inspections.find({}).limit(5); 
-
+```
 Данные читаются - ошибок нет
 
 ### Проверка записи данных
-
+```
 > db.inspections.insertOne({id: "00000-2023-ZZZZ", certificate_number: 9999999, business_name: "TEST INC." });
-
+```
 Данные записаны успешно:
 
-{
+```{
   acknowledged: true,
   insertedId: ObjectId("64428fa6cb90ef1413434b77")
 }
-
+```
 ### Запуск остановленной реплики
-
+```
 mongod --shardsvr --dbpath /home/mongo/db3 --port 27013 --replSet RS1 --fork --logpath /home/mongo/db3/db3.log --pidfilepath /home/mongo/db3/db3.pid
-
+```
 Состояние набора реплик:
-
+```
 mongosh --port 27011
 > rs.status();
 
@@ -1107,6 +1104,5 @@ mongosh --port 27011
   },
   operationTime: Timestamp({ t: 1682084388, i: 3 })
 }
-
+```
 Состояние набора реплик восстановлено. Реплика по порту 27013 восстановлена.
-
