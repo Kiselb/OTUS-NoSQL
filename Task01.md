@@ -38,7 +38,7 @@ Microsoft SQL Server является CA-системой. MS SQL являетс
 [Cassandra](https://cassandra.apache.org/_/cassandra-basics.html) - это нереляционная отказоустойчивая распределенная СУБД, рассчитанная на создание высокомасштабируемых и надёжных хранилищ огромных массивов данных, представленных в виде хэша ([столбец-ориентированная СУБД](https://www.techtarget.com/searchdatamanagement/definition/columnar-database)). Модель данных используемых Cassandra описана [здесь](https://www.bigdataschool.ru/wiki/cassandra).
 
 Cassandra – это децентрализованная распределенная система, состоящая из нескольких узлов, по которым распределены данные.
-При этом не поддерживается концепция main/follower. Для обмена иформацией между узлами используется протокол GOSSIP.
+При этом не поддерживается концепция main/follower. Для обмена иформацией между узлами используется протокол [GOSSIP](https://flopezluis.github.io/gossip-simulator/).
 
 В Cassandra используется протокол консенсуса [Paxos](https://docs.datastax.com/en/cassandra-oss/3.x/cassandra/dml/dmlLtwtTransactions.html?hl=paxos) для реализации облегченных транзакций, которые могут обрабатывать параллельные операции.
 
