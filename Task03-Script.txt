@@ -37,7 +37,7 @@ mongosh --port 27031
 rs.initiate({"_id" : "RS3", members : [{"_id" : 0, priority : 3, host : "127.0.0.1:27031"},{"_id" : 1, host : "127.0.0.1:27032"},{"_id" : 2, host : "127.0.0.1:27033"}]});
 
 
-sudo mkdir /home/mongo && sudo mkdir /home/mongo/dbs && sudo chmod 777 /home/mongo/dbs
+sudo mkdir /home/mongo/dbs && sudo chmod 777 /home/mongo/dbs
 
 mongos --configdb RScfg/127.0.0.1:27001,127.0.0.1:27002,127.0.0.1:27003 --port 27100 --fork --logpath /home/mongo/dbs/dbs1.log --pidfilepath /home/mongo/dbs/dbs1.pid 
 mongos --configdb RScfg/127.0.0.1:27001,127.0.0.1:27002,127.0.0.1:27003 --port 27200 --fork --logpath /home/mongo/dbs/dbs2.log --pidfilepath /home/mongo/dbs/dbs2.pid 
