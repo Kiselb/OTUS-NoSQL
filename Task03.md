@@ -12,7 +12,7 @@ mongod --configsvr --dbpath /home/mongo/dbc3 --port 27003 --replSet RScfg --fork
 
 ps aux | grep mongo| grep -Ev "grep"
 
-### Создание набора реплик:
+### Создание набора реплик конфигурации:
 
 ```mongosh --port 27001
 > rs.initiate({"_id" : "RScfg", configsvr: true, members : [{"_id" : 0, priority : 3, host : "127.0.0.1:27001"},{"_id" : 1, host : "127.0.0.1:27002"},{"_id" : 2, host : "127.0.0.1:27003"}]});
