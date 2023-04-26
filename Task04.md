@@ -7,8 +7,9 @@
 
 ![couchbase-istallation-error](./task04-installation-error.PNG)
 
-Получается, что истёк сертификата у ресурса Couhbase (странное дело) - или я ошибаюсь?
-Решение проблемы - ключ k в команде загрузки пакета:
+На двух машинах установка прошла успешно, но при установке на третьей возникла описанная ошибка.
+Получается, что истёк сертификата у ресурса Couhbase (странное дело) в промежутке между установками на разные машины.
+Или я ошибаюсь? Решение проблемы - ключ k в команде загрузки пакета:
 
 ```
 curl -O -k https://packages.couchbase.com/releases/couchbase-release/couchbase-release-1.0-amd64.deb
@@ -28,7 +29,7 @@ travel-sample. Ниже представлено состояние класте
 SELECT a.country FROM default:`travel-sample`.inventory.airline a
 WHERE a.name = "Excel Airways";
 ```
-Но получил отказ, с сообщением, что не создан первичный индекс ( к сожалению скриншот забыл сделать).
+Но получил отказ, с сообщением, что не создан первичный индекс (к сожалению, скриншот забыл сделать).
 Помог Advice - соответствующая кнопка создания индекса любезно выведена на экран.
 
 Результат запроса (выполнялся 1.9ms), как и описано в документации:
@@ -110,11 +111,44 @@ SELECT * FROM system:indexes WHERE name="def_inventory_airport_primary";
   }
 ]
 ```
-Попытался принудительно завершить построение индекса:
+Такое впечатление, что построение индекса "залипло". Попытался принудительно завершить построение индекса:
 ```
 BUILD INDEX ON `travel-sample`.`inventory`.`airport`(`def_inventory_airport_primary`, `def_inventory_airport_airportname`) USING GSI;
 ```
 
 Не помогло. Пришлось удалить индекс и заново создать. Запрос заработал:
 
+![couchbase-query](./task04-query.PNG)
 
+## Отказоустойчивость
+
+Остановил процесс couchbase-server на nosql3:
+```
+sudo systemctl stop couchbase-server
+```
+Кластер отреагировал штатно:
+
+![couchbase-failover-1](./task04-failover-1.PNG)
+
+![couchbase-failover-2](./task04-failover-2.PNG)
+
+Произвёл Rebalance:
+
+![couchbase-failover-3](./task04-failover-3.PNG)
+
+Проверка работоспособности кластера, выборка данных:
+
+![couchbase-failover-4](./task04-failover-4.PNG)
+
+Восстановление узла nosql3:
+```
+sudo systemctl stop couchbase-server
+```
+
+Добавление узла:
+
+![couchbase-failover-5](./task04-failover-5.PNG)
+
+Ребалансировка:
+
+![couchbase-failover-6](./task04-failover-6.PNG)
