@@ -142,7 +142,7 @@ sudo systemctl stop couchbase-server
 
 Восстановление узла nosql3:
 ```
-sudo systemctl stop couchbase-server
+sudo systemctl start couchbase-server
 ```
 
 Добавление узла:
