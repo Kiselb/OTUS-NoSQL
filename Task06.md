@@ -2,6 +2,46 @@
 
 ## Установка
 
+Кластер Cassandra развёрнут на четырёх виртуальных машинах в Docker-контейнерах. Команды установки (по одной на сервер):
+```
+docker run --name cassandra -d -e CASSANDRA_BROADCAST_ADDRESS=10.106.101.133 -p 7000:7000 cassandra:latest
+docker run --name cassandra -d -e CASSANDRA_BROADCAST_ADDRESS=10.106.101.138 -p 7000:7000 -e CASSANDRA_SEEDS=10.106.101.133 cassandra:latest
+docker run --name cassandra -d -e CASSANDRA_BROADCAST_ADDRESS=10.106.101.139 -p 7000:7000 -e CASSANDRA_SEEDS=10.106.101.133 cassandra:latest
+docker run --name cassandra -d -e CASSANDRA_BROADCAST_ADDRESS=10.106.101.140 -p 7000:7000 -e CASSANDRA_SEEDS=10.106.101.133 cassandra:latest
+```
+Состояние кластера после равёртывания:
+
+![Cassandrs кластер](./task06-cluster-status.PNG)
+
+![Cassandrs кластер](./task06-cluster-sqlsh-connect.PNG)
+
+## Загрузка данных
+
+### Простой таблицы
+
+Ниже приведены команды создания простой таблицы - только для проверки работоспособности кластера
+
+```
+CREATE KEYSPACE grocery WITH REPLICATION = {'class' : 'SimpleStrategy','replication_factor' : 2};
+ 
+CREATE TABLE IF NOT EXISTS grocery.fruit_stock (item_id TEXT, name TEXT, price_p_item DECIMAL, PRIMARY KEY (item_id));
+ 
+INSERT INTO grocery.fruit_stock (item_id, name, price_p_item) VALUES ('a0','apples',0.50);
+INSERT INTO grocery.fruit_stock (item_id, name, price_p_item) VALUES ('b1','bananas',0.40);
+INSERT INTO grocery.fruit_stock (item_id, name, price_p_item) VALUES ('c3','oranges',0.35);
+INSERT INTO grocery.fruit_stock (item_id, name, price_p_item) VALUES ('d4','pineapples',2.5);
+```
+
+Проверочный запрос, что данные записаны:
+```
+SELECT * FROM grocery.fruit_stock;
+```
+
+Результат выполнения команды:
+
+![simple-table](./task06-simple-table.PNG)
+
+
 
 
 ## Ресурсы
