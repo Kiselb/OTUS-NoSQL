@@ -2,12 +2,13 @@
 
 ## Установка
 
-Кластер Cassandra развёрнут на четырёх виртуальных машинах в Docker-контейнерах. Команды установки (по одной на сервер):
+Кластер Cassandra развёрнут на четырёх виртуальных машинах в [Docker-контейнерах](https://hub.docker.com/_/cassandra).
+Команды установки (по одной на сервер):
 ```
-docker run --name cassandra -d -e CASSANDRA_BROADCAST_ADDRESS=10.106.101.133 -p 7000:7000 cassandra:latest
-docker run --name cassandra -d -e CASSANDRA_BROADCAST_ADDRESS=10.106.101.138 -p 7000:7000 -e CASSANDRA_SEEDS=10.106.101.133 cassandra:latest
-docker run --name cassandra -d -e CASSANDRA_BROADCAST_ADDRESS=10.106.101.139 -p 7000:7000 -e CASSANDRA_SEEDS=10.106.101.133 cassandra:latest
-docker run --name cassandra -d -e CASSANDRA_BROADCAST_ADDRESS=10.106.101.140 -p 7000:7000 -e CASSANDRA_SEEDS=10.106.101.133 cassandra:latest
+docker run --name cassandra -d -e CASSANDRA_BROADCAST_ADDRESS=10.106.101.133 -p 7000:7000 -p 9042:9042 cassandra:latest
+docker run --name cassandra -d -e CASSANDRA_BROADCAST_ADDRESS=10.106.101.138 -p 7000:7000 -p 9042:9042 -e CASSANDRA_SEEDS=10.106.101.133 cassandra:latest
+docker run --name cassandra -d -e CASSANDRA_BROADCAST_ADDRESS=10.106.101.139 -p 7000:7000 -p 9042:9042 -e CASSANDRA_SEEDS=10.106.101.133 cassandra:latest
+docker run --name cassandra -d -e CASSANDRA_BROADCAST_ADDRESS=10.106.101.140 -p 7000:7000 -p 9042:9042 -e CASSANDRA_SEEDS=10.106.101.133 cassandra:latest
 ```
 Состояние кластера после равёртывания:
 
@@ -17,7 +18,7 @@ docker run --name cassandra -d -e CASSANDRA_BROADCAST_ADDRESS=10.106.101.140 -p 
 
 ## Загрузка данных
 
-### Простой таблицы
+### Простая таблица
 
 Ниже приведены команды создания простой таблицы - только для проверки работоспособности кластера
 
@@ -45,10 +46,45 @@ SELECT * FROM grocery.fruit_stock;
 
 ![simple-table](./task06-simple-table.PNG)
 
+### Сложная таблица
 
+Создание таблицы:
 
+```
+
+CREATE KEYSPACE applications WITH REPLICATION = {'class' : 'SimpleStrategy','replication_factor' : 2};
+
+CREATE TABLE IF NOT EXISTS applications.logs (id INT, app_name VARCHAR, hostname VARCHAR, log_datetime TIMESTAMP, env VARCHAR, log_level VARCHAR, log_message TEXT, PRIMARY KEY ((app_name, env), hostname, log_datetime));
+
+```
+
+Заполнение указанной таблицы произведено с помощью мини-приложения Node.js (файл index.js). Загружено 5'000'000 записей.
+
+Запросы:
+
+1:
+
+![request-1](./task06-request-1.PNG)
+
+2:
+
+![request-2](./task06-request-2.PNG)
+
+3:
+
+![request-3](./task06-request-3.PNG)
+
+Запросы выполняются мгновенно.
+
+4:
+
+![request-4](./task06-request-3.PNG)
+
+Последний запрос выполнился с ошибкой, как видно из скриншота. Добиться выполнения запроса не удалось. 
 
 ## Ресурсы
+
+[Cassandra DataStax](https://docs.datastax.com/en/cassandra-oss/3.x/index.html)
 
 [Установка кластера Cassandra на одной машине docker compose 1](https://gist.github.com/naumanbadar/aad6a25974b30adcb3c89b5f868627da)
 

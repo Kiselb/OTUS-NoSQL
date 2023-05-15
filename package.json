@@ -15,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/Kiselb/OTUS-NoSQL/issues"
   },
-  "homepage": "https://github.com/Kiselb/OTUS-NoSQL#readme"
+  "homepage": "https://github.com/Kiselb/OTUS-NoSQL#readme",
+  "dependencies": {
+    "cassandra-driver": "^4.6.4"
+  }
 }
