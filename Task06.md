@@ -54,7 +54,17 @@ SELECT * FROM grocery.fruit_stock;
 
 CREATE KEYSPACE applications WITH REPLICATION = {'class' : 'SimpleStrategy','replication_factor' : 2};
 
-CREATE TABLE IF NOT EXISTS applications.logs (id INT, app_name VARCHAR, hostname VARCHAR, log_datetime TIMESTAMP, env VARCHAR, log_level VARCHAR, log_message TEXT, PRIMARY KEY ((app_name, env), hostname, log_datetime));
+CREATE TABLE IF NOT EXISTS applications.logs (
+    id INT,
+    app_name VARCHAR,
+    hostname VARCHAR,
+    log_datetime TIMESTAMP,
+    env VARCHAR,
+    log_level VARCHAR,
+    log_message TEXT,
+
+    PRIMARY KEY ((app_name, env), hostname, log_datetime)
+);
 
 ```
 
@@ -78,9 +88,29 @@ CREATE TABLE IF NOT EXISTS applications.logs (id INT, app_name VARCHAR, hostname
 
 4:
 
-![request-4](./task06-request-3.PNG)
+![request-4](./task06-request-4.PNG)
 
-Последний запрос выполнился с ошибкой, как видно из скриншота. Добиться выполнения запроса не удалось. 
+Последний запрос выполнился с ошибкой, как видно из скриншота. Добиться выполнения запроса не удалось (настройка тайм-аутов cqlsh
+не помогла).
+
+## Создание вторичного индекса
+
+```
+
+CREATE INDEX LOGLEVELIDX ON applications.logs (log_level);
+
+```
+
+Проверочный запрос:
+
+Без индекса (выводится ошибка):
+
+![request-5](./task06-request-6.PNG)
+
+С индексом:
+
+![request-5](./task06-request-5.PNG)
+
 
 ## Ресурсы
 
