@@ -1,0 +1,107 @@
+6ItYMW
+
+-- если в облаке
+gcloud compute instances list
+
+cd c:\work\cassandra
+-- если ещё нет имеджа
+docker image pull cassandra:4.1.1
+-- стартуем сингл Экземпляр
+docker run --rm -d --name tmp cassandra:4.1.1
+-- копируем эталонные конфиги
+docker cp tmp:/etc/cassandra etc_cassandra-vanilla
+
+mkdir -p etc
+xcopy etc_cassandra-vanilla\* etc\cass1 /e
+xcopy etc_cassandra-vanilla\* etc\cass2 /e
+docker stop tmp
+
+
+
+docker ps -a
+docker compose create
+docker compose start
+
+docker exec -ti cass1 bash
+docker exec -ti cass2 bash
+
+nodetool status
+nodetool info
+nodetool tpstats
+nodetool repair -inc
+
+cqlsh
+
+describe keyspaces;
+describe tables;
+
+TRUNCATE otus.shopping_cart2;
+
+CREATE KEYSPACE IF NOT EXISTS otus WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : '2' };
+
+CREATE TABLE IF NOT EXISTS otus.shopping_cart2 (
+userid text,
+item_count int,
+date_created date,
+last_update_timestamp timestamp,
+PRIMARY KEY ((userid, date_created), last_update_timestamp)
+);
+
+
+CONSISTENCY THREE;
+CONSISTENCY TWO;
+-- добавляем данные
+
+INSERT INTO otus.shopping_cart2
+(userid, item_count, date_created, last_update_timestamp)
+VALUES ('9876', 2, '2023-05-03', toTimeStamp(now()));
+INSERT INTO otus.shopping_cart2
+(userid, item_count, date_created,  last_update_timestamp)
+VALUES ('1234', 5, '2023-05-02', toTimeStamp(now()));
+INSERT INTO otus.shopping_cart2
+(userid, item_count, date_created,  last_update_timestamp)
+VALUES ('1234', 5, '2023-05-03', toTimeStamp(now()));
+INSERT INTO otus.shopping_cart2
+(userid, item_count, date_created,  last_update_timestamp)
+VALUES ('1234', 6, '2023-05-03', toTimeStamp(now()));
+
+
+-- проверяем данные
+SELECT * FROM otus.shopping_cart2;
+
+-- пробуем проапдейтить
+UPDATE otus.shopping_cart2 SET item_count = 15 WHERE userid = '1234';
+UPDATE otus.shopping_cart2 SET item_count = 15 WHERE userid = '1234' AND date_created = '2023-05-03';
+UPDATE otus.shopping_cart2 SET item_count = 15 WHERE userid = '1234' 
+AND date_created = '2023-05-03' 
+AND last_update_timestamp > '2023-05-06 05:01:33.306000+0000';
+UPDATE otus.shopping_cart2 SET item_count = 15 WHERE userid = '1234' 
+AND date_created = '2023-05-03' 
+AND last_update_timestamp = '2023-05-06 05:01:33.306000+0000';
+
+-- посмотрим что вышло:
+SELECT * FROM otus.shopping_cart2;
+
+ALTER TABLE otus.shopping_cart2 ADD descr varchar;
+
+INSERT INTO otus.shopping_cart2
+JSON' {"userid":"1234", "item_count": "55" , "date_created": "2023-05-06",  "last_update_timestamp": "2023-05-06 05:01:44.306000+0000", "descr":"NoSQL"}';
+
+SELECT * FROM otus.shopping_cart2;
+
+SELECT * FROM otus.shopping_cart2 WHERE userid = '1234' AND date_created = '2023-05-06' AND descr = 'NoSQL' ALLOW FILTERING;
+
+CREATE INDEX shopping_cart2Idx ON shopping_cart2(descr); 
+
+SELECT * FROM otus.shopping_cart2 WHERE userid = '1234' AND date_created = '2023-05-06' AND descr = 'NoSQL';
+
+CREATE MATERIALIZED VIEW mv1 AS
+   SELECT userid,date_created,last_update_timestamp,descr FROM otus.shopping_cart2
+   WHERE userid = '1234'
+   PRIMARY KEY (userid,date_created,last_update_timestamp,descr);
+
+-- безопасность
+LIST ROLES;
+
+
+gcloud compute instances stop cassandra1
