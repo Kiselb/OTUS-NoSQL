@@ -120,6 +120,8 @@ CREATE INDEX LOGLEVELIDX ON applications.logs (log_level);
 
 ## Ресурсы
 
+[Cassandra](https://cassandra.apache.org/_/index.html)
+
 [Cassandra DataStax](https://docs.datastax.com/en/cassandra-oss/3.x/index.html)
 
 [Установка кластера Cassandra на одной машине docker compose 1](https://gist.github.com/naumanbadar/aad6a25974b30adcb3c89b5f868627da)
@@ -137,3 +139,9 @@ CREATE INDEX LOGLEVELIDX ON applications.logs (log_level);
 [Статьи по Docker Network](https://accesto.com/blog/docker-networks-explained-part-1/)
 
 [Статьи по Docker Network](https://accesto.com/blog/docker-networks-explained-part-2/)
+
+[МОДЕЛЬ ДАННЫХ APACHE CASSANDRA](https://www.bigdataschool.ru/wiki/cassandra)
+
+[ТОП-10 достоинств и 5 главных недостатков Apache Cassandra](https://www.bigdataschool.ru/blog/cassandra-key-features.html)
+
+[Cassandra Docker](https://hub.docker.com/_/cassandra)
