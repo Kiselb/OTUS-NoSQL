@@ -1,45 +1,82 @@
-let cassandra = require('cassandra-driver');
+import { createClient } from 'redis';
+import { readFileSync } from 'fs';
+import { Redis } from 'ioredis';
 
-async function wrireRow(client, id, app_name, env, hostname, log_datetime, log_level, log_message) {
-    try {
-        const query = 'INSERT INTO applications.logs (id, app_name, env, hostname, log_datetime, log_level, log_message) VALUES (?, ?, ?, ?, ?, ?, ?)';
-        await client.execute(query,
-            [id, app_name, env, hostname, log_datetime, log_level, log_message],
-            { prepare: true }
-            )
-            .then(result => result)
-            .catch((err) => {console.log('ERROR:', err);});
-    } catch(error) {
-        console.log(`Error: ${error}`);
-    }
+//const client = createClient({ url: 'redis://10.106.101.133:6379'});
+//
+//client.on('error', err => console.log('Redis Client Error', err));
+//
+//await client.connect();
+//
+//await client.set('key', 'value');
+//const value = await client.get('key');
+//await client.disconnect();
+//
+//console.log(value);
+
+const redis = new Redis({
+    port: 6379,
+    host: "10.106.101.133",
+    //enableAutoPipelining: true
+});
+
+const raw = readFileSync('city_inspections.json');
+const data = JSON.parse(raw);
+
+console.log(`Keys quantity:${data.length}`);
+//console.time();
+
+// for(let i = 0; i < data.length; i++) {
+//     await redis.set("city:" + data[i].id + ":certificate", data[i].certificate_number);
+//     await redis.set("city:" + data[i].id + ":businessname", data[i].business_name);
+//     await redis.set("city:" + data[i].id + ":date", data[i].date);
+//     await redis.set("city:" + data[i].id + ":result", data[i].result);
+//     await redis.set("city:" + data[i].id + ":sector", data[i].sector);
+// }
+
+// for(let i = 0; i < data.length; i++) {
+//     await redis.hset("city:" + data[i].id,
+//         {
+//             certificate: data[i].certificate_number,
+//             businessname: data[i].business_name,
+//             date: data[i].date,
+//             result: data[i].result,
+//             sector: data[i].sector
+//         }
+//     );
+// }
+
+// const pipeline = redis.pipeline();
+
+// for(let i = 0; i < data.length; i++) {
+//     await pipeline.set("city:" + data[i].id + ":certificate", data[i].certificate_number);
+//     await pipeline.set("city:" + data[i].id + ":businessname", data[i].business_name);
+//     await pipeline.set("city:" + data[i].id + ":date", data[i].date);
+//     await pipeline.set("city:" + data[i].id + ":result", data[i].result);
+//     await pipeline.set("city:" + data[i].id + ":sector", data[i].sector);
+// }
+
+// for(let i = 0; i < data.length; i++) {
+//     await pipeline.hset("city:" + data[i].id,
+//         {
+//             certificate: data[i].certificate_number,
+//             businessname: data[i].business_name,
+//             date: data[i].date,
+//             result: data[i].result,
+//             sector: data[i].sector
+//         }
+//     );
+// }
+
+console.time();
+//await pipeline.exec();
+
+for(let i = 0; i < 10000; i++) {
+    await redis.get("city:10021-2015-ENFO:certificate");
 }
-async function writeBlock() {
-    let contactPoints = ['nosql3.group.legion.ru'];
-    let localDataCenter = 'datacenter1';
-    let client = new cassandra.Client({contactPoints: contactPoints, localDataCenter: localDataCenter, keyspace:'applications'});
 
-    let id = 1000;
-    let log_timestamp = 1684148238051
+//for(let i = 0; i < 10000; i++) {
+//    await redis.hgetall("city:10021-2015-ENFO");
+//}
 
-    try {
-        for(let app_index = 0; app_index < 100; app_index++) {
-            for(let env_index = 0; env_index < 10; env_index++) {
-                for(let host_index = 0; host_index < 100; host_index++) {
-                    for(let fact_index = 0; fact_index < 10; fact_index++) {
-                        for(let log_level_index = 0; log_level_index < 5; log_level_index++) {
-                            await wrireRow(client, id, 'app_' + app_index, 'env_' + env_index, 'host_' + host_index, new Date(log_timestamp), 'LEVEL_' + log_level_index, 'app_' + app_index + 'env_' + env_index + 'host_' + host_index)
-                            id = id + 1;
-                            log_timestamp = log_timestamp + 750;
-                        }
-                    }
-                }
-            }
-        }
-    } catch(error) {
-        console.log(`Error: ${error}`);
-    } finally {
-        client.shutdown();
-    }
-}
-
-writeBlock();
+console.timeEnd();

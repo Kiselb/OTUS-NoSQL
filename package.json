@@ -17,6 +17,9 @@
   },
   "homepage": "https://github.com/Kiselb/OTUS-NoSQL#readme",
   "dependencies": {
-    "cassandra-driver": "^4.6.4"
-  }
+    "cassandra-driver": "^4.6.4",
+    "ioredis": "^5.3.2",
+    "redis": "^4.6.6"
+  },
+  "type": "module"
 }
