@@ -126,6 +126,8 @@ const data = JSON.parse(raw);
 
 console.log(`Keys quantity:${data.length}`);
 
+const pipeline = redis.pipeline();
+
 for(let i = 0; i < data.length; i++) {
     await pipeline.set("city:" + data[i].id + ":certificate", data[i].certificate_number);
     await pipeline.set("city:" + data[i].id + ":businessname", data[i].business_name);
