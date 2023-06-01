@@ -58,11 +58,11 @@ console.log(`Keys quantity:${data.length}`);
 console.time();
 
 for(let i = 0; i < data.length; i++) {
-     await redis.set("city:" + data[i].id + ":certificate", data[i].certificate_number);
-     await redis.set("city:" + data[i].id + ":businessname", data[i].business_name);
-     await redis.set("city:" + data[i].id + ":date", data[i].date);
-     await redis.set("city:" + data[i].id + ":result", data[i].result);
-     await redis.set("city:" + data[i].id + ":sector", data[i].sector);
+    await redis.set("city:" + data[i].id + ":certificate", data[i].certificate_number);
+    await redis.set("city:" + data[i].id + ":businessname", data[i].business_name);
+    await redis.set("city:" + data[i].id + ":date", data[i].date);
+    await redis.set("city:" + data[i].id + ":result", data[i].result);
+    await redis.set("city:" + data[i].id + ":sector", data[i].sector);
 }
 
 console.timeEnd();

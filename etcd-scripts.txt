@@ -1,0 +1,346 @@
+-- развернем ВМ postgres в GCE
+--us-west1-b - тож не пустили()
+-- gcloud compute project-info describe --project celtic-house-266612
+for i in {1..3}; do gcloud beta compute --project=celtic-house-266612 instances create etcd$i --zone=us-central1-a --machine-type=e2-small --subnet=default --network-tier=PREMIUM --maintenance-policy=MIGRATE --service-account=933982307116-compute@developer.gserviceaccount.com --scopes=https://www.googleapis.com/auth/cloud-platform --image-family=ubuntu-2004-lts --image-project=ubuntu-os-cloud --boot-disk-size=10GB --boot-disk-type=pd-ssd --boot-disk-device-name=etcd$i --no-shielded-secure-boot --shielded-vtpm --shielded-integrity-monitoring --reservation-affinity=any & done;
+
+-- install etcd
+for i in {1..3}; do gcloud compute ssh etcd$i --command='sudo apt update && sudo apt upgrade -y && sudo apt install -y etcd' & done;
+
+-- если раньше времени завершил баш скрпт
+-- gcloud compute ssh etcd2
+-- sudo dpkg --configure -a
+-- sudo apt install -y etcd
+
+-- проверим, что c etcd
+for i in {1..3}; do gcloud compute ssh etcd$i --command='hostname; ps -aef | grep etcd | grep -v grep' & done;
+
+-- с определенной версии кластер после установки стартует сам, так что нам надо его остановить 
+-- остановим сервисы etcd
+for i in {1..3}; do gcloud compute ssh etcd$i --command='sudo systemctl stop etcd' & done;
+
+-- добавим в файлы с конфигами /etc/default/etcd:
+-- обратите внимание работает только с работающим DNS, иначе IP адреса
+for i in {1..3}; do gcloud compute ssh etcd$i --command='cat > temp.cfg << EOF 
+ETCD_NAME="$(hostname)"
+ETCD_LISTEN_CLIENT_URLS="http://0.0.0.0:2379"
+ETCD_ADVERTISE_CLIENT_URLS="http://$(hostname):2379"
+ETCD_LISTEN_PEER_URLS="http://0.0.0.0:2380"
+ETCD_INITIAL_ADVERTISE_PEER_URLS="http://$(hostname):2380"
+ETCD_INITIAL_CLUSTER_TOKEN="PatroniCluster"
+ETCD_INITIAL_CLUSTER="etcd1=http://etcd1:2380,etcd2=http://etcd2:2380,etcd3=http://etcd3:2380"
+ETCD_INITIAL_CLUSTER_STATE="new"
+ETCD_DATA_DIR="/var/lib/etcd"
+EOF
+cat temp.cfg | sudo tee -a /etc/default/etcd
+' & done;
+
+-- старт на всех трех 
+for i in {1..3}; do gcloud compute ssh etcd$i --command='sudo systemctl start etcd' & done;
+
+-- проверка автозагрузки
+gcloud compute ssh etcd1
+systemctl is-enabled etcd
+
+-- проверка etcd-кластера:
+etcdctl cluster-health
+
+member 9a1f33941721f94d is healthy: got healthy result from http://etcd1:2379
+member 9df0146dd9068bd2 is healthy: got healthy result from http://etcd3:2379
+member f2aeb69aaf7ffcbf is healthy: got healthy result from http://etcd2:2379
+cluster is healthy
+
+-- посмотрим версию
+etcd --version
+
+-- посмотрим утилиту управления
+etcdctl --help
+
+-- смотрим внутренние ip
+gcloud compute instances list
+
+
+-- Если забыли про выключение etcd для правки конфига
+-- sudo systemctl restart etcd
+-- потрейсить сеть
+sudo apt install net-tools
+sudo netstat -lntp
+sudo tail /var/log/syslog -n 100
+
+etcdctl --write-out=table endpoint status
+export ETCDCTL_API=3
+etcdctl --write-out=table endpoint status
+
+etcdctl member list
+
+etcdctl endpoint health
+
+
+--проверим работоспособность
+etcdctl put foo bar
+etcdctl get foo
+
+-- etcdctl --endpoints="http://10.128.15.212:2379,http://10.128.15.213:2379,http://10.128.15.214:2379" endpoint health
+etcdctl --endpoints="http://etcd1:2379,http://etcd2:2379,http://etcd3:2379" endpoint health
+etcdctl --endpoints="http://etcd1:2379,http://etcd2:2379,http://etcd3:2379,http://etcd4:2379" endpoint health
+
+-- посмотрим на функционал
+etcdctl put foo2 bar2 -- на любой ноде
+etcdctl get foo2
+etcdctl put foo1 bar3 -- на любой ноде
+etcdctl put foo4 bar4 -- на любой ноде
+etcdctl get foo2 foo3
+etcdctl get foo2 foo4
+etcdctl get foo2 foo5
+-- почему так странно выводит?
+
+
+-- правильно - указан диапазон
+-- что выдаст команда?
+etcdctl get foo2 foo1
+
+etcdctl put foo1 bar1 -- на любой ноде
+etcdctl put foo3 bar3 -- на любой ноде
+etcdctl put foo4 bar4 -- на любой ноде
+
+etcdctl get foo1 foo5
+etcdctl put foo2 bar2 -- на любой ноде
+etcdctl get foo1 foo5
+
+-- удалим
+etcdctl del foo
+etcdctl del foo2 foo3
+etcdctl del foo3 
+etcdctl del foo4 
+
+-- история 
+etcdctl put foo bar         # revision = x
+etcdctl put foo1 bar1       # revision = x+1
+etcdctl put foo bar_new     # revision = x+2
+etcdctl put foo1 bar1_new   # revision = x+3
+
+
+etcdctl get --prefix foo # access the most recent versions of keys
+etcdctl get --prefix --rev=4 foo # access the versions of keys at revision 4
+etcdctl get --prefix --rev=3 foo # access the versions of keys at revision 3
+etcdctl get --prefix --rev=10 foo # access the versions of keys at revision 2
+
+-- есть идеи как узнать последнюю версию?
+etcdctl help get
+
+
+
+
+
+
+-- лайфхак как узнать последнюю ревизию
+etcdctl get foo --write-out="json"
+etcdctl get --order=DESCEND --sort-by=MODIFY --limit=1 --prefix "" --write-out="json"
+
+etcdctl get --order=DESCEND --sort-by=MODIFY --limit=1 --prefix "" --write-out="simple"
+etcdctl get foo --write-out="simple"
+
+
+-- обьединить историю
+etcdctl compact 5
+--compacted revision 5
+
+-- any revisions before the compacted one are not accessible
+etcdctl get --rev=4 foo
+-- Error:  rpc error: code = 11 desc = etcdserver: mvcc: required revision has been compacted
+
+-- аренда ключей
+
+
+-- grant a lease with 60 second TTL
+etcdctl lease grant 30
+--lease 32695410dcc0ca06 granted with TTL(30s)
+
+-- attach key foo to lease 3dac7c0dfbc61a18
+etcdctl put --lease=794d885c1fba4d1d foo bar_lease
+
+
+
+-- Revoke leases
+etcdctl lease revoke 32695410dcc0ca06
+-- lease 32695410dcc0ca06 revoked
+
+etcdctl get foo
+-- empty response since foo is deleted due to lease revocation
+
+-- можно ли теперь получить как-то значение, которое было во время жизни аренды?
+
+
+
+etcdctl get --rev=8 foo
+
+etcdctl get foo --write-out="json"
+etcdctl get foo --rev 11
+
+-- Keep leases alive
+etcdctl lease keep-alive 32695410dcc0ca06
+etcdctl lease timetolive 694d5765fc71500b
+
+
+
+-- watch
+etcdctl watch foo
+-- во 2 терминале на 3 ноде
+etcdctl put foo = bar333
+
+
+etcdctl get foo
+
+-- почему значение foo '='?? мы же присовили etcdctl put foo = bar333
+etcdctl put foo = "bar333"
+
+
+
+
+
+-- потому что у нас был пробел после foo =
+etcdctl put foo bar333
+
+-- просмотреть все изменения переменной с определенной ревизии по текущую
+etcdctl watch --rev=5 foo
+
+
+-- 4 нода
+-- развернем ВМ postgres в GCE
+gcloud beta compute --project=celtic-house-266612 instances create etcd4 --zone=us-central1-a --machine-type=e2-small --subnet=default --network-tier=PREMIUM --maintenance-policy=MIGRATE --service-account=933982307116-compute@developer.gserviceaccount.com --scopes=https://www.googleapis.com/auth/devstorage.read_only,https://www.googleapis.com/auth/logging.write,https://www.googleapis.com/auth/monitoring.write,https://www.googleapis.com/auth/servicecontrol,https://www.googleapis.com/auth/service.management.readonly,https://www.googleapis.com/auth/trace.append --image-family=ubuntu-2004-lts --image-project=ubuntu-os-cloud --boot-disk-size=10GB --boot-disk-type=pd-ssd --boot-disk-device-name=etcd4--no-shielded-secure-boot --shielded-vtpm --shielded-integrity-monitoring --reservation-affinity=any
+ 
+gcloud compute ssh etcd4
+
+-- установка etcd
+sudo apt update && sudo apt upgrade -y && sudo apt install -y etcd
+
+-- на 1-3 ноде
+-- только на 1 ноде с определенной версии
+etcdctl member add etcd4 --peer-urls=http://etcd4:2380
+etcdctl --write-out=table endpoint status
+etcdctl cluster-health
+export ETCDCTL_API=3
+etcdctl --write-out=table endpoint status
+
+etcdctl member list
+
+etcdctl endpoint health
+
+-- на 4 ноде заменим конфиг
+sudo systemctl stop etcd
+
+-- в документации нписано хватит такого конфига, но нет
+--ETCD_INITIAL_CLUSTER="etcd1=http://etcd1:2380,etcd2=http://etcd2:2380,etcd3=http://etcd3:2380,etcd4=http://etcd4:2380"
+--ETCD_INITIAL_CLUSTER_STATE="existing"
+--ETCD_INITIAL_CLUSTER_TOKEN="TestCluster"
+
+-- добавляем полный конфиг ETCD_INITIAL_CLUSTER_STATE="existing"
+sudo nano /etc/default/etcd
+ETCD_NAME="etcd4"
+ETCD_LISTEN_CLIENT_URLS="http://0.0.0.0:2379"
+ETCD_ADVERTISE_CLIENT_URLS="http://etcd4:2379"
+ETCD_LISTEN_PEER_URLS="http://0.0.0.0:2380"
+ETCD_INITIAL_ADVERTISE_PEER_URLS="http://etcd4:2380"
+ETCD_INITIAL_CLUSTER_TOKEN="PatroniCluster"
+ETCD_INITIAL_CLUSTER="etcd1=http://etcd1:2380,etcd2=http://etcd2:2380,etcd3=http://etcd3:2380,etcd4=http://etcd4:2380"
+ETCD_INITIAL_CLUSTER_STATE="existing"
+ETCD_DATA_DIR="/var/lib/etcd"
+ETCD_ELECTION_TIMEOUT="5000"
+ETCD_HEARTBEAT_INTERVAL="1000"
+
+sudo systemctl start etcd
+
+etcdctl cluster-health
+
+-- УРААААА %)
+
+etcdctl get foo
+-- почему ошибка?
+
+
+
+
+
+
+
+
+
+
+export ETCDCTL_API=3
+etcdctl member list
+etcdctl --write-out=table endpoint status
+etcdctl --endpoints="http://etcd1:2379,http://etcd2:2379,http://etcd3:2379,http://etcd4:2379" endpoint health
+
+
+-- реанимация кластера
+-- on 2 & 3 nodes
+sudo systemctl stop etcd
+
+etcdctl get foo
+
+-- для raft n/2+1 нода
+sudo systemctl start etcd
+
+
+-- уберем 4 ноду из кластера по id, а не имени
+etcdctl member list
+etcdctl member remove id_cluster
+etcdctl member remove 33ca8d9434c6e67a
+
+-- бэкап ноды
+-- останоаим 2 и 3 ноды
+sudo systemctl stop etcd
+etcdctl get foo
+etcdctl --endpoints="http://etcd1:2379,http://etcd2:2379,http://etcd3:2379" endpoint health
+
+-- на 1 ноде сделаем бэкап
+export ETCDCTL_API=3
+etcdctl snapshot save /var/tmp/etcd.backup
+
+--sudo rm -rf /var/lib/etcd
+--sudo mkdir /var/lib/etcd
+--sudo chown etcd:etcd /var/lib/etcd
+--sudo chmod 777 /var/lib/etcd
+--etcdctl snapshot --data-dir /var/lib/etcd/backup restore /var/tmp/etcd.backup \
+
+
+-- останавливаем сервис на 1-3 ноде
+sudo systemctl stop etcd
+-- на 2-3 ноде
+sudo rm -rf /var/lib/etcd/member
+
+-- скопируем себе бэкап. запустим с ноутбука
+gcloud compute instances list
+scp aeugene@35.224.87.11:/var/tmp/etcd.backup e.b
+scp e.b aeugene@104.154.150.130:/var/tmp/etcd.backup
+scp e.b aeugene@35.238.105.48:/var/tmp/etcd.backup
+
+
+
+-- развернуть в текущий каталог
+etcdctl snapshot restore /var/tmp/etcd.backup \
+  --name etcd2 \
+  --initial-cluster etcd1=http://etcd1:2380,etcd2=http://etcd2:2380,etcd3=http://etcd3:2380 \
+  --initial-cluster-token PatroniCluster \
+  --initial-advertise-peer-urls http://etcd2:2380
+
+sudo cp -rf ./etcd2.etcd/member /var/lib/etcd
+sudo chown -R etcd:etcd /var/lib/etcd
+
+
+-- на всех нодах корректируем команду бэкапа, копируем файлы и стартуем сервис
+sudo systemctl start etcd
+
+etcdctl get foo
+
+--force-new-cluster can be used to overwrite cluster membership while keeping existing application data, 
+but is strongly discouraged because it will panic if other members from previous cluster are still alive.
+
+
+-- удалим наш проект
+gcloud compute instances delete etcd1
+gcloud compute instances delete etcd2
+gcloud compute instances delete etcd3
+gcloud compute instances delete etcd4
+
+
+
