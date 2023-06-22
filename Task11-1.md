@@ -82,7 +82,7 @@ GO
 ```
 ### Таблица типов свойств узлов
 
-Таблица содержит допустимые типы свойств узлов
+Таблица содержит допустимые типы свойств узлов. За скобками остался вопрос о типе свойства: int, bit, nvarchar и т.д. Я не стал это реализовывать, поскольку схема базы данных и без того получается развесистой. В данной релизации предполагается, что значения свойств имеют тип *nvarchar(4000)*.
 
 ```
 
@@ -100,7 +100,7 @@ GO
 
 ### Таблица свойств конкретных узлов
 
-Таблица содержит значения свойств конкретных узлов
+Таблица содержит конкретные значения свойств конкретных узлов
 
 ```
 
@@ -127,9 +127,74 @@ GO
 
 ### Таблица типов связей
 
-### Таблица свойств связей
+```
+
+CREATE TABLE [dbo].[GRAPH_LinkTypes](
+	[LinkTypeID] [int] IDENTITY(1,1) NOT NULL,
+	[LinkTypeName] [nvarchar](255) NOT NULL,
+ CONSTRAINT [PK_GRAPH_LinkTypes] PRIMARY KEY CLUSTERED 
+(
+	[LinkTypeID] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY],
+ CONSTRAINT [IX_GRAPH_LinkTypes] UNIQUE NONCLUSTERED 
+(
+	[LinkTypeName] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+
+```
+
+### Таблица допустимых свойств связей
+
+```
+
+CREATE TABLE [dbo].[GRAPH_LinkProperties](
+	[PropertyID] [int] IDENTITY(1,1) NOT NULL,
+	[PropertyName] [nvarchar](255) NOT NULL,
+ CONSTRAINT [PK_GRAPH_LinkProperties] PRIMARY KEY CLUSTERED 
+(
+	[PropertyID] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY],
+ CONSTRAINT [IX_GRAPH_LinkProperties] UNIQUE NONCLUSTERED 
+(
+	[PropertyName] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+
+```
+### Таблица значений конкретных свойств конкретных связей
+
+Поле LinkID - конкретная связь между конкрентными узлами графа (таблица **GRAPH_Links** - см. ниже)
+
+```
+
+CREATE TABLE [dbo].[GRAPH_LinkPropertiesLinks](
+	[LinkID] [int] NOT NULL,
+	[PropertyID] [int] NOT NULL,
+	[PropertyValue] [nvarchar](4000) NOT NULL,
+ CONSTRAINT [PK_GRAPH_LinkPropertiesLinks] PRIMARY KEY CLUSTERED 
+(
+	[LinkID] ASC,
+	[PropertyID] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+
+ALTER TABLE [dbo].[GRAPH_LinkPropertiesLinks]  WITH CHECK ADD  CONSTRAINT [FK_GRAPH_LinkPropertiesLinks_GRAPH_LinkProperties] FOREIGN KEY([PropertyID])
+REFERENCES [dbo].[GRAPH_LinkProperties] ([PropertyID])
+GO
+
+ALTER TABLE [dbo].[GRAPH_LinkPropertiesLinks] CHECK CONSTRAINT [FK_GRAPH_LinkPropertiesLinks_GRAPH_LinkProperties]
+GO
+
+```
 
 ### Таблица графов
+
+Ключ таблицы - идентификатор связи между узлами графа: *OriginNodeID* и *TargetNodeID*. Поле *LinkTypeID* - тип (метка) связи. У связи может быть только одна метка.
+Свойства узлов, задаваемых полями *OriginNodeID* и *TargetNodeID*, опрделяются в таблице **GRAPH_NodeProperiesNodes**.
 
 ```
 
@@ -169,3 +234,12 @@ GO
 ```
 
 ### Схема базы данных
+
+Ниже представлена схема Базы Данных
+
+![graph schema](./Task11-1-schema.PNG)
+
+
+
+
+
