@@ -4,7 +4,7 @@
 посвящённой neo4j, упоминается, что возникновение neo4j было обусловлено, в том числе, и неудачными попытками реализовать графовую модель
 средствами реляционной базы данных. Под средствами реляционной СУБД не подразумеваются специализированные расширения СУБД поддержки графовых моделей. Для MS SQL Server такие [средства](https://www.red-gate.com/simple-talk/databases/sql-server/t-sql-programming-sql-server/sql-server-graph-databases-part-1-introduction/) реализованы и поддерживаются с 2017 года. Но, вполне возможно реализовать простые случаи графов нативными средствами реляционной СУБД. Например, иерархические структуры - деревья. Запросы для работы с деревьями вполне понятны и просты, благодаря рекурсивным CTE (common table expressions). Но в целом, реализовать
 нативными средствами реляционной СУБД полноценную поддержку графовой модели, с обеспечением хорошего уровня производительности для графов с миллиардами узлов, вряд ли
-возможно. Преодоление семантического разрыва между табличной и графовой парадигмами может превратится в неразрешимую задачу - надо ещё формально доказать, что реляционное и графовое представления изоморфны. 
+возможно. Преодоление семантического разрыва между табличной и графовой парадигмами может превратится в трудно разрешимую задачу. 
 
 ## Базовые таблицы
 
@@ -82,7 +82,7 @@ GO
 ```
 ### Таблица типов свойств узлов
 
-Таблица содержит допустимые типы свойств узлов. За скобками остался вопрос о типе свойства: int, bit, nvarchar и т.д. Я не стал это реализовывать, поскольку схема базы данных и без того получается развесистой. В данной релизации предполагается, что значения свойств имеют тип *nvarchar(4000)*.
+Таблица содержит допустимые типы свойств узлов. За скобками остался вопрос о типе свойства: *int*, *bit*, *nvarchar* и т.д. Я не стал это реализовывать, поскольку схема базы данных и без того получается развесистой. В данной релизации предполагается, что значения свойств имеют тип *nvarchar(4000)*.
 
 ```
 
@@ -193,8 +193,8 @@ GO
 
 ### Таблица графов
 
-Ключ таблицы - идентификатор связи между узлами графа: *OriginNodeID* и *TargetNodeID*. Поле *LinkTypeID* - тип (метка) связи. У связи может быть только одна метка.
-Свойства узлов, задаваемых полями *OriginNodeID* и *TargetNodeID*, опрделяются в таблице **GRAPH_NodeProperiesNodes**.
+Ключ таблицы поле *LinkID* - идентификатор связи между узлами графа: *OriginNodeID* и *TargetNodeID*. Поле *LinkTypeID* - тип (метка) связи. У связи может быть только одна метка.
+Свойства узлов, задаваемых полями *OriginNodeID* и *TargetNodeID*, определяются в таблице **GRAPH_NodeProperiesNodes**.
 
 ```
 
@@ -240,6 +240,70 @@ GO
 ![graph schema](./Task11-1-schema.PNG)
 
 
+## Сравнение команд по работе с данными
 
+### Добавление двух узлов и связи между ними
 
+Ниже приведена последовательность команд для создания двух узлов и связи, предполагается, что граф пуст.
+Узлы: Alice, Bob. Связь: Alice MANAGES Bob.
+
+```
+
+BEGIN TRANSACTION
+
+DECLARE @NodeTypeID INT
+
+-- Создание типа (метки) узла WORKER - сотрудник
+INSERT INTO dbo_GRAPH_NodeTypes (NodeTypeName) VALUES ('WORKER')
+SET NodeTypeID = SCOPE_IDENTITY()
+
+-- Создания свойства узла NAME - имя сторудника
+DECLARE @PropertyID INT
+
+INSERT INTO dbo_GRAPH_NodeProperties (PropertyName) VALUES('NAME')
+SET @PropertyID = SCOPE_IDENTITY()
+
+-- Создание узла Alice
+DECLARE @NodeOriginID INT
+
+INSERT INTO dbo_GRAPH_Nodes DEFAULT VALUES
+SET @NodeOriginID = SCOPE_IDENTITY()
+
+INSERT INTO dbo_GRAPH_NodeTypesNodes (NodeID, NodeTypeID) VALUES (@NodeOriginID, @NodeTypeID)
+INSERT INTO dbo_GRAPH_NodeProperiesNodes (NodeID, PropertyID, PropertyValue) VALUES (@NodeOriginID, @PropertyID, 'Alice')
+
+-- Создание узла Bob
+DECLARE @NodeTargetID INT
+
+INSERT INTO dbo_GRAPH_Nodes DEFAULT VALUES
+SET @NodeTargetID = SCOPE_IDENTITY()
+
+INSERT INTO dbo_GRAPH_NodeTypesNodes (NodeID, NodeTypeID) VALUES (@NodeTargetID, @NodeTypeID)
+INSERT INTO dbo_GRAPH_NodeProperiesNodes (NodeID, PropertyID, PropertyValue) VALUES (@NodeTargetID, @PropertyID, 'Bob')
+
+-- Создание связи Alice - MANAGES -> Bob (Alice управлет Bob'ом)
+DECLARE @LinkTypeID INT
+
+INSERT INTO dbo_GRAPH_LinkTypes (LinkTypeName) VALUES ('MANAGES')
+SET @LinkTypeID = SCOPE_IDENTITY()
+
+DECLARE @LinkID INT
+
+INSERT INTO dbo_GRAPH_Links (OriginNodeID, TargetNodeID, LinkTypeID) VALUES (@OriginNodeID, @TargetNodeID, @LinkTypeID)
+SET @LinkID = SCOPE_IDENTITY()
+
+COMMIT TRANSACTION
+
+```
+
+Да, многословно получилось. А всего-то требуется добавить одно ребро графа: Alice - MANAGES -> Bob (Alice управлет Bob'ом).
+В Neo4j всё намного проще:
+
+```
+
+CREATE  (alice: WORKER { name: 'Alice' }),
+        (bob: WORKER { name: 'Bob' }),
+        (alice)-[:MANAGES]->(bob)
+        
+```
 
