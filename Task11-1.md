@@ -2,7 +2,7 @@
 
 В данной работе будет проводится сравнение с MS SQL Server. В [книге](https://dmkpress.com/catalog/computer/databases/978-5-97060-201-0/),
 посвящённой neo4j, упоминается, что возникновение neo4j было обусловлено, в том числе, и неудачными попытками реализовать графовую модель
-средствами реляционной базы данных. Под средствами реляционной СУБД не подразумеваются специализированные расширения СУБД поддержки графовых моделей. Для MS SQL Server такие [средства](https://www.red-gate.com/simple-talk/databases/sql-server/t-sql-programming-sql-server/sql-server-graph-databases-part-1-introduction/) реализованы и поддерживаются с 2017 года. Но, вполне возможно реализовать простые случаи графов нативными средствами реляционной СУБД. Например, иерархические структуры - деревья. Запросы для работы с деревьями вполне понятны и просты, благодаря рекурсивным CTE (common table expressions). Но в целом, реализовать
+средствами реляционной базы данных. Под средствами реляционной СУБД не подразумеваются специализированные расширения СУБД поддержки графовых моделей. Для MS SQL Server такие [средства](https://www.red-gate.com/simple-talk/databases/sql-server/t-sql-programming-sql-server/sql-server-graph-databases-part-1-introduction/) реализованы и поддерживаются с 2017 года. Но, вполне возможно реализовать простые случаи графов нативными средствами реляционной СУБД. Например, иерархические структуры - деревья. Запросы для работы с деревьями вполне понятны и просты, благодаря рекурсивным *CTE (common table expressions)*. Но в целом, реализовать
 нативными средствами реляционной СУБД полноценную поддержку графовой модели, с обеспечением хорошего уровня производительности для графов с миллиардами узлов, вряд ли
 возможно. Преодоление семантического разрыва между табличной и графовой парадигмами может превратится в трудно разрешимую задачу. 
 
@@ -304,6 +304,106 @@ COMMIT TRANSACTION
 CREATE  (alice: WORKER { name: 'Alice' }),
         (bob: WORKER { name: 'Bob' }),
         (alice)-[:MANAGES]->(bob)
-        
+
 ```
 
+### Выборка данных
+
+Попробуем выбрать всех сотрудников, которыми руководят все подчинённые Alice (выбрать подчинённых подчинённым Alice). Т.е. предположим,
+что у нас есть многоуровневая иерархия Руководитель-Подчинённый (WORKER-MANAGES->WORKER-MANAGES->WORKER- ...).
+
+```
+
+DECLARE @AliceNodeID INT
+
+SELECT
+    @AliceNodeID = NodeID
+FROM
+    dbo_GRAPH_Nodes N
+    INNER JOIN dbo_GRAPH_NodeTypesNodes NT ON NT.NodeID = N.NodeID
+    INNER JOIN dbo_GRAPH_NodeTypes T ON T.NodeTypeID = NT.NodeTypeID
+    INNER JOIN dbo_GRAPH_NodeProperiesNodes NP ON NP.NodeID = N.NodeID
+    INNER JOIN dbo_GRAPH_NodeProperties P ON P.PropertyID = NP.PropertyID
+WHERE
+    T.NodeTypeName = 'WORKER'
+    AND P.PropertyName = 'NAME'
+    AND NP.PropertyValue = 'Alice'
+
+SELECT
+    L1.TargetNodeID, NP.PropertyValue
+FROM
+    dbo_GRAPH_Links L0
+    INNER JOIN dbo_GRAPH_Links L1 ON L1.OriginNodeID = L0.TargetNodeID
+    INNER JOIN dbo_GRAPH_NodeTypesNodes NT ON NT.NodeID = L1.NodeID
+    INNER JOIN dbo_GRAPH_NodeTypes T ON T.NodeTypeID = NT.NodeTypeID
+    INNER JOIN dbo_GRAPH_NodeProperiesNodes NP ON NP.NodeID = L1.NodeID
+    INNER JOIN dbo_GRAPH_NodeProperties P ON P.PropertyID = NP.PropertyID
+    INNER JOIN dbo_GRAPH_LinkTypes LT0 ON LT0.LinkTypeID = L0.LinkTypeID
+    INNER JOIN dbo_GRAPH_LinkTypes LT1 ON LT1.LinkTypeID = L1.LinkTypeID
+WHERE
+    L0.OriginNodeID = @AliceNodeID
+    AND T.NodeTypeName = 'WORKER'
+    AND P.PropertyName = 'NAME'
+    AND LT0.LinkTypeName = 'MANAGES'
+    AND LT1.LinkTypeName = 'MANAGES'
+
+```
+
+Опять же, в Neo4j гораздо проще:
+
+```
+
+MATCH (:WORKER {name: 'Alice'})-[:MANAGES]->(:WORKER)-[:MANAGES]->(workers:WORKER)
+RETURN workers.name
+
+```
+
+А что делать, если необходимо получить всех сотрудников поддерева относительно *Alice*?
+Ведь глубина связей заранее не известна. В Neo4j задача решается просто:
+
+```
+
+MATCH (:WORKER {name: 'Alice'})-[:MANAGES*]->(workers:WORKER)
+RETURN workers.name
+
+```
+
+Можно попробовать сформулировать рекурсивный запрос с помощью рекурсивного *CTE (common table expressions)*. Это будет выглядеть примерно так:
+
+```
+
+WITH workers_cte (NodeID)
+AS (
+    SELECT @AliceNodeID AS NodeID
+    UNION ALL
+    SELECT L.TargetNodeID AS NodeID
+    FROM
+        dbo_GRAPH_Links L
+        INNER JOIN workers_cte C ON C.NodeID = L.OriginNodeID
+        INNER JOIN dbo_GRAPH_LinkTypes LT ON LT.LinkTypeID = L.LinkTypeID
+    WHERE
+        L.LinkTypeName = 'MANAGES'
+)
+SELECT
+    NP.Name
+FROM
+    workers_cte N
+    INNER JOIN dbo_GRAPH_NodeTypesNodes NT ON NT.NodeID = N.NodeID
+    INNER JOIN dbo_GRAPH_NodeTypes T ON T.NodeTypeID = NT.NodeTypeID
+    INNER JOIN dbo_GRAPH_NodeProperiesNodes NP ON NP.NodeID = N.NodeID
+    INNER JOIN dbo_GRAPH_NodeProperties P ON P.PropertyID = NP.PropertyID
+WHERE
+    T.NodeTypeName = 'WORKER'
+    AND P.PropertyName = 'NAME'
+OPTION (MAXRECURSION 0);
+
+```
+
+Но этот запрос работает только в одну сторону - вниз по иерархии. Для получения всего подграфа, независимо от направления связи,
+данный запрос не подходит. Если в графе есть циклы, то и в этом случае запрос не подойдёт - зациклится и никогда не завершится.
+
+## Выводы
+
+Попытка реализовать графовую базу данных нативными средствами реляционной СУБД возможна для решения конкретных специфичных задач, например,
+древовидных структур. Общего решения, по моему мнению, быть не может. Поэтому, если предметная область хорошо описывается графовой моделью, то
+следует использовать графовую базу данных.
