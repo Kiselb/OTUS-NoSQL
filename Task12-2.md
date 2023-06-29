@@ -31,10 +31,48 @@
 
 ### Фрагмента графа
 
-Для решения домашнего задания использовалась среда разработки Meo4j AuraDB. Файлы данных для загрузки размещены
+Для решения домашнего задания использовалась среда разработки Neo4j AuraDB. Файлы данных для загрузки размещены
 в данном репозитории: *Task12.\*.csv*.
+
 Ниже представлен фрагмент графа. Не показаны узлы туроператоров, стран, связи воздушного сообщения. Лишние
 узлы пришлось убрать, поскольку при отображении полного графа в AuraDB появляются проблемы.
 
 ![graph-fragment](./task12-graph-fragment.PNG)
 
+### Запрос
+
+Для решения задачи использовался следуюющий запрос:
+
+```
+
+1 MATCH (n:RWS)-[:PINNED]-(:CITY)
+2 MATCH (k:CITY)-[:NEAREST]-(:LOC)
+3 MATCH (m:RWS)-[:PINNED]-(k)
+4 MATCH p = (n)-[:RWROUTE*1..]-(m)
+5 RETURN p
+
+```
+
+В строке 1 формируется список всех вокзалов. В строке 2 формируется список городов, близких к местам локации туристических туров.
+В строке 3 формируется список вокзалов, связанных с городами, близкими к местам локации. Строка 4 выбирает все маршруты от вокзалов
+городов, не связанных с местами локации, с вокзалами городов, связанных с местами локации.
+
+Ниже приведён результат выполнения запроса.
+
+```
+
+(:RWS {rwstationid: 400, name: " Вокзал40"})<-[:RWROUTE]-(:RWS {rwstationid: 100, name: " Вокзал01"})
+(:RWS {rwstationid: 410, name: " Вокзал41"})<-[:RWROUTE]-(:RWS {rwstationid: 400, name: " Вокзал40"})<-[:RWROUTE]-(:RWS {rwstationid: 100, name: " Вокзал01"})
+(:RWS {rwstationid: 480, name: " Вокзал48"})-[:RWROUTE]->(:RWS {rwstationid: 120, name: " Вокзал03"})
+(:RWS {rwstationid: 440, name: " Вокзал44"})-[:RWROUTE]->(:RWS {rwstationid: 480, name: " Вокзал48"})-[:RWROUTE]->(:RWS {rwstationid: 120, name: " Вокзал03"})
+(:RWS {rwstationid: 470, name: " Вокзал47"})-[:RWROUTE]->(:RWS {rwstationid: 440, name: " Вокзал44"})-[:RWROUTE]->(:RWS {rwstationid: 480, name: " Вокзал48"})- [:RWROUTE]->(:RWS {rwstationid: 120, name: " Вокзал03"})
+(:RWS {rwstationid: 420, name: " Вокзал42"})-[:RWROUTE]->(:RWS {rwstationid: 130, name: " Вокзал04"})
+(:RWS {rwstationid: 460, name: " Вокзал46"})-[:RWROUTE]->(:RWS {rwstationid: 420, name: " Вокзал42"})-[:RWROUTE]->(:RWS {rwstationid: 130, name: " Вокзал04"})
+(:RWS {rwstationid: 430, name: " Вокзал43"})-[:RWROUTE]->(:RWS {rwstationid: 180, name: " Вокзал09"})
+(:RWS {rwstationid: 450, name: " Вокзал45"})-[:RWROUTE]->(:RWS {rwstationid: 430, name: " Вокзал43"})-[:RWROUTE]->(:RWS {rwstationid: 180, name: " Вокзал09"})
+(:RWS {rwstationid: 400, name: " Вокзал40"})<-[:RWROUTE]-(:RWS {rwstationid: 100, name: " Вокзал01"})
+(:RWS {rwstationid: 410, name: " Вокзал41"})<-[:RWROUTE]-(:RWS {rwstationid: 400, name: " Вокзал40"})<-[:RWROUTE]-(:RWS {rwstationid: 100, name: " Вокзал01"})
+
+```
+
+Результат можно сравнить с фрагментом графа, приведённым выше.
