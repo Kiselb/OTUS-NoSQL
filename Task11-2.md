@@ -48,7 +48,7 @@
 
 - **PublishBy**. Связь между узлом **User** и узлом **Message**;
 - **TransferBy**. Связь между узлом **User**, сделавшим repost и **Repost**;
-- **TransfeTo**. Связь между узлом **Repost** и узлами **User** - кому сделан repost;
+- **TransferTo**. Связь между узлом **Repost** и узлами **User** - кому сделан repost;
 - **Repost**. Связь между узлом **Message**/**Repost** (сообщение, которое repost'или) и узлом **Repost**;
 - **Origin**. Связь обратная связи **Repost**.
 
