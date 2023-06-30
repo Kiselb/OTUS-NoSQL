@@ -2,14 +2,6 @@
 
 ## Планы выполнения до создания индекса
 
-Статистика выполнения запроса:
-
-```
-
-Started streaming 11 records after 1ms and completed after 3ms
-
-```
-
 Ниже представлен план выполнения запроса (команда PROFILE)
 
 ```
@@ -59,6 +51,8 @@ Batch size 128
 +-----------------------+----+-------------------------------+----------------+------+---------+----------------+------------------------+-----------+---------------------+
 
 Total database accesses: 418, total allocated memory: 352
+
+Started streaming 11 records after 1ms and completed after 4ms.
 
 ```
 
@@ -113,4 +107,6 @@ Batch size 128
 Total database accesses: ?
 
 ```
+
+## Создание индексов
 
