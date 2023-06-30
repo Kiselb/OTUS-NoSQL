@@ -110,3 +110,42 @@ Total database accesses: ?
 
 ## Создание индексов
 
+В плане выполнения запроса в последней строке указан оператор *NodeByLabelScan*. Это верный признак того, что необходим *Lookup* индекс
+по узлам - должен использоваться оператор *NodeByLabelSeek*.
+
+Создаю индекс:
+
+```
+
+CREATE LOOKUP INDEX node_label_lookup_index FOR (n) ON EACH labels(n)
+
+```
+
+В ответ получаю следующее:
+
+```
+
+Neo.ClientError.Schema.IndexAlreadyExists
+There already exists an index (:<any-labels>).
+
+```
+
+Видимо, в AuraDB включена опция автоиндексирования. Но почему же используется оператор *NodeByLabelScan*? Я считаю, по аналогии с реляционными базами данных,
+что стоимость сканирования меньше чем выборка с использованием индекса. Это связано с малым количеством данных (узлов), т.е. 
+последовательный перебор получается быстрее, чем выборка с использованием индекса.
+
+Аналогичная ситуация и с индексом по связям:
+
+```
+
+CREATE LOOKUP INDEX rel_type_lookup_index FOR ()-[r]-() ON EACH type(r)
+
+```
+
+```
+
+Neo.ClientError.Schema.IndexAlreadyExists
+There already exists an index ()-[:<any-types>]-().
+
+
+```
