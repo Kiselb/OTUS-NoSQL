@@ -7,7 +7,7 @@
 
 ![install check](./task13-install-check.PNG)
 
-## Соэдание приложения кластера Tarantool
+## Создание приложения кластера Tarantool
 
 Установка cartrige-cli произведена в соответствии с [инструкцией](https://www.tarantool.io/ru/doc/latest/book/cartridge/cartridge_cli/installation/).
 Создание приложения и кластера произведено в соответствии с [инструкцией](https://www.tarantool.io/ru/doc/latest/how-to/getting_started_cartridge/).
