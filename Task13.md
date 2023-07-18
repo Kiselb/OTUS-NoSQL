@@ -24,3 +24,7 @@
 
 ![cluster replicaset](./task13-replicaset.PNG)
 
+Состояние кластера после выполнения bootstrap
+
+![cluster replicaset bootstrap](./task13-replicaset-bootstrap.PNG)
+
