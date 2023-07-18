@@ -20,7 +20,7 @@
 
 ![configure cluster](./task13-configure-server.PNG)
 
-Состояние кластера после выполнения конфигурирования:
+Состояние кластера после выполнения конфигурирования (failover: RAFT):
 
 ![cluster replicaset](./task13-replicaset.PNG)
 
