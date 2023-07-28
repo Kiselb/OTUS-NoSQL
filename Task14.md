@@ -5,7 +5,11 @@
 Настройка MongoDB-кластера произведена в соответствии с (инструкцией)[https://cloud.yandex.ru/docs/managed-mongodb/operations/cluster-list].
 
 Кластер собран из 3-х нешардированных реплик. Подключение к кластеру осуществлялось с помощью MongoDB Compass Community.
-На скриншоте ниже представлено состояние кластера.
+На скриншотах ниже представлено состояние кластера.
+
+![cluster](./task14-yc-cluster.PNG)
+
+![cluster](./task14-yc-hosts.PNG)
 
 ![cluster](./task14-cluster-state.PNG)
 
