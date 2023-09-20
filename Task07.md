@@ -5,7 +5,7 @@
 Установку произвёл локально с использованием docker:
 ```
 
-docker run -d --name elasticsearch -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" -e ELASTIC_USERNAME=elastic -e ELASTIC_PASSWORD=******** elasticsearch:7.5.2
+docker run -d --name elasticsearch -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" -e ELASTIC_USERNAME=elastic -e ELASTIC_PASSWORD=Elastic$12345 elasticsearch:7.5.2
 
 ```
 
